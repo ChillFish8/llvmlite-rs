@@ -6,11 +6,11 @@ edition = "2021"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-anyhow = "1"
+libloading = "0.8.0"
 
-llvmlite-sys = { path = "llvmlite-sys" }
+llvmlite-types = { path = "llvmlite-types" }
 
 [workspace]
 members = [
-    "llvmlite-sys"
+    "llvmlite-types"
 ]

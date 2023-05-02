@@ -1,7 +1,8 @@
-use llvmlite_sys::{LLVMPY_ContextCreate, LLVMPY_ContextDispose};
+mod binding;
+mod wrappers;
 
-#[test]
-pub fn test_works() -> anyhow::Result<()> {
-
-    Ok(())
-}
+pub use wrappers::{
+    ByteString,
+    Utf8String,
+};
+pub use binding::{LLVMLite, LoadError};

@@ -1,5 +1,3 @@
-#[cfg(feature = "binding")]
-pub mod binding;
 mod interface;
 mod types;
 
