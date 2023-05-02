@@ -8,6 +8,8 @@ edition = "2021"
 [dependencies]
 anyhow = "1"
 
+llvmlite-sys = { path = "llvmlite-sys" }
+
 [workspace]
 members = [
     "llvmlite-sys"

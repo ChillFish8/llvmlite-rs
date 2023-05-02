@@ -2,8 +2,11 @@ use std::ffi::{c_char, c_void};
 
 use crate::types::*;
 
-#[link(name = "../bin/llvmlite")]
 extern "C" {
+    pub fn LLVMPY_ContextDispose(context: LLVMContextRef);
+
+    pub fn LLVMPY_SetCommandLine(name: *const c_char, option: *const c_char);
+
     pub fn LLVMPY_ParseAssembly(
         context: LLVMContextRef,
         ir: *const c_char,

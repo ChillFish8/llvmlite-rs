@@ -1,12 +1,9 @@
-pub mod dylib;
-pub mod execution_engine;
-pub mod initfini;
-pub mod linker;
-pub mod module;
-pub mod object_file;
-pub mod pass_managers;
-pub mod targets;
-pub mod transforms;
-pub mod value;
-pub mod bind;
-pub mod types;
+mod interface;
+mod types;
+#[cfg(feature = "binding")]
+mod binding;
+
+pub use interface::*;
+pub use types::*;
+
+
