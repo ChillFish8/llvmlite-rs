@@ -54,32 +54,32 @@ pub type LLVMOperandsIteratorRef = *mut LLVMOperandsIterator;
 #[derive(Debug)]
 pub enum LLVMOpaqueSectionIterator {}
 
-pub type LLVMSectionIteratorRef  = *mut LLVMOpaqueSectionIterator;
+pub type LLVMSectionIteratorRef = *mut LLVMOpaqueSectionIterator;
 
 #[derive(Debug)]
 pub enum LLVMOpaqueGlobalsIterator {}
 
-pub type LLVMGlobalsIteratorRef  = *mut LLVMOpaqueGlobalsIterator;
+pub type LLVMGlobalsIteratorRef = *mut LLVMOpaqueGlobalsIterator;
 
 #[derive(Debug)]
 pub enum LLVMTypesIterator {}
 
-pub type LLVMTypesIteratorRef  = *mut LLVMTypesIterator;
+pub type LLVMTypesIteratorRef = *mut LLVMTypesIterator;
 
 #[derive(Debug)]
 pub enum LLVMOpaqueFunctionsIterator {}
 
-pub type LLVMFunctionsIteratorRef  = *mut LLVMOpaqueFunctionsIterator;
+pub type LLVMFunctionsIteratorRef = *mut LLVMOpaqueFunctionsIterator;
 
 #[derive(Debug)]
-pub enum LLVMObjectFile  {}
+pub enum LLVMObjectFile {}
 
-pub type LLVMObjectFileRef  = *mut LLVMObjectFile;
+pub type LLVMObjectFileRef = *mut LLVMObjectFile;
 
 #[derive(Debug)]
 pub enum LLVMObjectCache {}
 
-pub type LLVMObjectCacheRef  = *mut LLVMObjectCache;
+pub type LLVMObjectCacheRef = *mut LLVMObjectCache;
 
 #[derive(Debug)]
 pub enum LLVMOpaqueTargetData {}
@@ -194,7 +194,6 @@ pub type LLVMComdatRef = *mut LLVMComdat;
 pub type LLVMModuleFlagEntry = *mut LLVMOpaqueModuleFlagEntry;
 pub type LLVMJITEventListenerRef = *mut LLVMOpaqueJITEventListener;
 pub type LLVMAttributeRef = *mut LLVMOpaqueAttributeRef;
-
 
 #[repr(C)]
 #[derive(Clone, Copy, Debug, PartialEq)]
@@ -549,4 +548,5 @@ pub type LLVMAttributeIndex = std::ffi::c_int;
 
 pub type LLVMDiagnosticHandler =
     Option<extern "C" fn(arg1: LLVMDiagnosticInfoRef, arg2: *mut std::ffi::c_void)>;
-pub type LLVMYieldCallback = Option<extern "C" fn(arg1: LLVMContextRef, arg2: *mut std::ffi::c_void)>;
+pub type LLVMYieldCallback =
+    Option<extern "C" fn(arg1: LLVMContextRef, arg2: *mut std::ffi::c_void)>;

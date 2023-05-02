@@ -1,610 +1,362 @@
+#![allow(non_upper_case_globals)]
+#![allow(non_camel_case_types)]
+
 use std::ffi::{c_char, c_void};
 
 use crate::types::*;
 
-extern "C" {
-    pub fn LLVMPY_ContextDispose(context: LLVMContextRef);
-
-    pub fn LLVMPY_SetCommandLine(name: *const c_char, option: *const c_char);
-
-    pub fn LLVMPY_ParseAssembly(
-        context: LLVMContextRef,
-        ir: *const c_char,
-        out_msg: *mut *const c_char,
-    ) -> LLVMContextRef;
-    
-    pub fn LLVMPY_WriteBitcodeToString(
-        context: LLVMContextRef,
-        out_buf: *mut *const c_char,
-        out_len: *mut usize,
-    );
-
-    pub fn LLVMPY_ParseBitcode(
-        context: LLVMContextRef,
-        bit_code: *const c_char,
-        bit_code_len: usize,
-        out_msg: *mut *const c_char,
-    ) -> LLVMModuleRef;
-    
-    pub fn LLVMPY_CreateString(msg: *const c_char) -> *const c_char;
-    
-    pub fn LLVMPY_CreateByteString(msg: *const c_char, len: usize) -> *const c_char;
-    
-    pub fn LLVMPY_DisposeString(msg: *const c_char);
-    
-    pub fn LLVMPY_GetGlobalContext() -> LLVMContextRef;
-    
-    pub fn LLVMPY_ContextCreate() -> LLVMContextRef;
-    
-    pub fn LLVMPY_AddRefPrunePass(pass_manager: LLVMPassManagerRef, sub_passes: i32, subgraph_limit: usize);
-    
-    pub fn LLVMPY_DumpRefPruneStats(buf: *mut PruneStats, display: bool);
-    
-    pub fn LLVMPY_SearchAddressOfSymbol(name: *const c_char) -> *const c_void;
-    
-    pub fn LLVMPY_AddSymbol(name: *const c_char, addr: *const c_void);
-    
-    pub fn LLVMPY_LoadLibraryPermanently(filename: *const c_char, out_error: *mut *const c_char) -> bool;
-    
-    pub fn LLVMPY_LinkInMCJIT();
-
-    pub fn LLVMPY_DisposeExecutionEngine(execution_engine: LLVMExecutionEngineRef);
-
-    pub fn LLVMPY_AddModule(execution_engine: LLVMExecutionEngineRef, module: LLVMModuleRef);
-
-    pub fn LLVMPY_RemoveModule(
-        execution_engine: LLVMExecutionEngineRef,
-        module: LLVMModuleRef,
-        out_error: *mut *mut c_char
-    ) -> i32;
-
-    pub fn LLVMPY_FinalizeObject(execution_engine: LLVMExecutionEngineRef);
-
-    pub fn LLVMPY_CreateMCJITCompiler(
-        execution_engine: LLVMExecutionEngineRef,
-        target_machine: LLVMTargetMachineRef,
-        out_error: *mut *const c_char,
-    ) -> LLVMExecutionEngineRef;
-
-    pub fn LLVMPY_GetGlobalValueAddress(
-        execution_engine: LLVMExecutionEngineRef,
-        name: *const c_char,
-    ) -> u64;
-
-    pub fn LLVMPY_GetFunctionAddress(
-        execution_engine: LLVMExecutionEngineRef,
-        name: *const c_char,
-    ) -> u64;
-
-    pub fn LLVMPY_RunStaticConstructors(execution_engine: LLVMExecutionEngineRef);
-
-    pub fn LLVMPY_RunStaticDestructors(execution_engine: LLVMExecutionEngineRef);
-
-    pub fn LLVMPY_AddGlobalMapping(execution_engine: LLVMExecutionEngineRef);
-
-    pub fn LLVMPY_GetExecutionEngineTargetData(
-        execution_engine: LLVMExecutionEngineRef
-    ) -> LLVMTargetDataRef;
-
-    pub fn LLVMPY_TryAllocateExecutableMemory() -> i32;
-
-    pub fn LLVMPY_EnableJITEvents(execution_engine: LLVMExecutionEngineRef) -> bool;
-
-    pub fn LLVMPY_MCJITAddObjectFile(
-        execution_engine: LLVMExecutionEngineRef,
-        object_file: LLVMObjectFileRef,
-    );
-
-    pub fn LLVMPY_CreateObjectCache(
-        notify_func: ObjectCacheNotifyFunc,
-        get_object_func: ObjectCacheGetObjectFunc,
-        user_data: *mut c_void,
-    ) -> LLVMObjectCacheRef;
-
-    pub fn LLVMPY_DisposeObjectCache(cache: LLVMObjectCacheRef);
-
-    pub fn LLVMPY_SetObjectCache(
-        execution_engine: LLVMExecutionEngineRef,
-        cache: LLVMObjectCacheRef
-    );
-    
-    pub fn LLVMPY_Shutdown();
-
-    pub fn LLVMPY_GetVersionInfo() -> u32;
-    
-    pub fn LLVMPY_LinkModules(dest: LLVMModuleRef, src: LLVMModuleRef, err: *mut *const c_char) -> i32;
-    
-    pub fn LLVMPY_DisposeModule(module: LLVMModuleRef);
-
-    pub fn LLVMPY_PrintModuleToString(module: LLVMModuleRef, out_str: *mut *const c_char);
-
-    pub fn LLVMPY_GetModuleSourceFileName(module: LLVMModuleRef) -> *const c_char;
-
-    pub fn LLVMPY_GetModuleName(module: LLVMModuleRef) -> *const c_char;
-
-    pub fn LLVMPY_SetModuleName(module: LLVMModuleRef, name: *const c_char);
-
-    pub fn LLVMPY_GetNamedFunction(module: LLVMModuleRef, name: *const c_char) -> LLVMValueRef;
-
-    pub fn LLVMPY_GetNamedGlobalVariable(module: LLVMModuleRef, name: *const c_char) -> LLVMValueRef;
-
-    pub fn LLVMPY_GetNamedStructType(module: LLVMModuleRef, name: *const c_char) -> LLVMTypeRef;
-
-    pub fn LLVMPY_VerifyModule(module: LLVMModuleRef, out_msg: *mut *const c_char) -> i32;
-
-    pub fn LLVMPY_GetDataLayout(module: LLVMModuleRef, layout: *mut *const c_char);
-
-    pub fn LLVMPY_SetDataLayout(module: LLVMModuleRef, layout: *const c_char);
-
-    pub fn LLVMPY_GetTarget(module: LLVMModuleRef, triple: *mut *const c_char);
-
-    pub fn LLVMPY_SetTarget(module: LLVMModuleRef, triple: *const c_char);
-
-    pub fn LLVMPY_ModuleGlobalsIter(module: LLVMModuleRef) -> LLVMGlobalsIteratorRef;
-
-    pub fn LLVMPY_ModuleFunctionsIter(module: LLVMModuleRef) -> LLVMFunctionsIteratorRef;
-
-    pub fn LLVMPY_ModuleTypesIter(module: LLVMModuleRef) -> LLVMTypesIteratorRef;
-
-    pub fn LLVMPY_GlobalsIterNext(module: LLVMGlobalsIteratorRef) -> LLVMValueRef;
-
-    pub fn LLVMPY_FunctionsIterNext(iter: LLVMFunctionsIteratorRef) -> LLVMValueRef;
-
-    pub fn LLVMPY_TypesIterNext(iter: LLVMTypesIteratorRef) -> LLVMTypeRef;
-
-    pub fn LLVMPY_DisposeGlobalsIter(iter: LLVMGlobalsIteratorRef);
-
-    pub fn LLVMPY_DisposeFunctionsIter(iter: LLVMFunctionsIteratorRef);
-
-    pub fn LLVMPY_DisposeTypesIter(iter: LLVMTypesIteratorRef);
-
-    pub fn LLVMPY_CloneModule(module: LLVMModuleRef) -> LLVMModuleRef;
-    
-    pub fn LLVMPY_CreateObjectFile(buf: *const c_char, n: usize) -> LLVMObjectFileRef;
-
-    pub fn LLVMPY_DisposeObjectFile(object: LLVMObjectFileRef);
-
-    pub fn LLVMPY_GetSections(object: LLVMObjectFileRef) -> LLVMSectionIteratorRef;
-
-    pub fn LLVMPY_DisposeSectionIterator(section_iter: LLVMSectionIteratorRef);
-
-    pub fn LLVMPY_MoveToNextSection(section_iter: LLVMSectionIteratorRef);
-
-    pub fn LLVMPY_IsSectionIteratorAtEnd(
-        object: LLVMObjectFileRef,
-        section_iter: LLVMSectionIteratorRef,
-    ) -> bool;
-
-    pub fn LLVMPY_GetSectionName(section_iter: LLVMSectionIteratorRef) -> *const c_char;
-
-    pub fn LLVMPY_GetSectionAddress(section_iter: LLVMSectionIteratorRef) -> u64;
-
-    pub fn LLVMPY_GetSectionContents(section_iter: LLVMSectionIteratorRef) -> *const c_char;
-
-    pub fn LLVMPY_GetSectionSize(section_iter: LLVMSectionIteratorRef) -> u64;
-
-    pub fn LLVMPY_IsSectionText(section_iter: LLVMSectionIteratorRef) -> bool;
-    
-    pub fn LLVMPY_SetTimePasses(enable: bool);
-
-    pub fn LLVMPY_ReportAndResetTimings(out_msg: *mut *const c_char);
-
-    pub fn LLVMPY_CreatePassManager() -> LLVMPassManagerRef;
-
-    pub fn LLVMPY_DisposePassManager(pass_manager: LLVMPassManagerRef);
-
-    pub fn LLVMPY_CreateFunctionPassManager(module: LLVMModuleRef) -> LLVMPassManagerRef;
-
-    pub fn LLVMPY_RunPassManagerWithRemarks(
-        pass_manager: LLVMPassManagerRef,
-        module: LLVMModuleRef,
-        remarks_format: *const c_char,
-        remarks_filter: *const c_char,
-        record_filename: *const c_char,
-    ) -> i32;
-
-    pub fn LLVMPY_RunPassManager(
-        pass_manager: LLVMPassManagerRef,
-        module: LLVMModuleRef,
-    ) -> i32;
-
-    pub fn LLVMPY_RunFunctionPassManagerWithRemarks(
-        pass_manager: LLVMPassManagerRef,
-        value: LLVMValueRef,
-        remarks_format: *const c_char,
-        remarks_filter: *const c_char,
-        record_filename: *const c_char,
-    ) -> i32;
-
-    pub fn LLVMPY_RunFunctionPassManager(
-        pass_manager: LLVMPassManagerRef,
-        value: LLVMValueRef,
-    ) -> i32;
-
-    pub fn LLVMPY_InitializeFunctionPassManager(pass_manager: LLVMPassManagerRef) -> i32;
-
-    pub fn LLVMPY_FinalizeFunctionPassManager(pass_manager: LLVMPassManagerRef) -> i32;
-
-    pub fn LLVMPY_AddAAEvalPass(pass_manager: LLVMPassManagerRef);
-
-    pub fn LLVMPY_AddBasicAAWrapperPass(pass_manager: LLVMPassManagerRef);
-
-    pub fn LLVMPY_AddDependenceAnalysisPass(pass_manager: LLVMPassManagerRef);
-
-    pub fn LLVMPY_AddCallGraphDOTPrinterPass(pass_manager: LLVMPassManagerRef);
-
-    pub fn LLVMPY_AddDotDomPrinterPass(pass_manager: LLVMPassManagerRef, show_body: bool);
-
-    pub fn LLVMPY_AddGlobalsModRefAAPass(pass_manager: LLVMPassManagerRef);
-
-    pub fn LLVMPY_AddDotPostDomPrinterPass(pass_manager: LLVMPassManagerRef, show_body: bool);
-
-    pub fn LLVMPY_AddCFGPrinterPass(pass_manager: LLVMPassManagerRef);
-
-    pub fn LLVMPY_AddConstantMergePass(pass_manager: LLVMPassManagerRef);
-
-    pub fn LLVMPY_AddDeadStoreEliminationPass(pass_manager: LLVMPassManagerRef);
-
-    pub fn LLVMPY_AddReversePostOrderFunctionAttrsPass(pass_manager: LLVMPassManagerRef);
-
-    pub fn LLVMPY_AddDeadArgEliminationPass(pass_manager: LLVMPassManagerRef);
-
-    pub fn LLVMPY_AddInstructionCountPass(pass_manager: LLVMPassManagerRef);
-
-    pub fn LLVMPY_AddIVUsersPass(pass_manager: LLVMPassManagerRef);
-
-    pub fn LLVMPY_AddLazyValueInfoPass(pass_manager: LLVMPassManagerRef);
-
-    pub fn LLVMPY_AddLintPass(pass_manager: LLVMPassManagerRef);
-
-    pub fn LLVMPY_AddModuleDebugInfoPrinterPass(pass_manager: LLVMPassManagerRef);
-
-    pub fn LLVMPY_AddRegionInfoPass(pass_manager: LLVMPassManagerRef);
-
-    pub fn LLVMPY_AddScalarEvolutionAAPass(pass_manager: LLVMPassManagerRef);
-
-    pub fn LLVMPY_AddAggressiveDCEPass(pass_manager: LLVMPassManagerRef);
-
-    pub fn LLVMPY_AddAlwaysInlinerPass(pass_manager: LLVMPassManagerRef, insert_lifetime: bool);
-
-    pub fn LLVMPY_AddArgPromotionPass(pass_manager: LLVMPassManagerRef, max_elements: u32);
-
-    pub fn LLVMPY_AddBreakCriticalEdgesPass(pass_manager: LLVMPassManagerRef);
-
-    pub fn LLVMPY_AddFunctionAttrsPass(pass_manager: LLVMPassManagerRef);
-
-    pub fn LLVMPY_AddFunctionInliningPass(pass_manager: LLVMPassManagerRef);
-
-    pub fn LLVMPY_AddGlobalOptimizerPass(pass_manager: LLVMPassManagerRef);
-
-    pub fn LLVMPY_AddGlobalDCEPass(pass_manager: LLVMPassManagerRef);
-
-    pub fn LLVMPY_AddIPSCCPPass(pass_manager: LLVMPassManagerRef);
-
-    pub fn LLVMPY_AddDeadCodeEliminationPass(pass_manager: LLVMPassManagerRef);
-
-    pub fn LLVMPY_AddAggressiveInstructionCombiningPass(pass_manager: LLVMPassManagerRef);
-
-    pub fn LLVMPY_AddInternalizePass(pass_manager: LLVMPassManagerRef);
-
-    pub fn LLVMPY_AddJumpThreadingPass(pass_manager: LLVMPassManagerRef, threshold: i32);
-
-    pub fn LLVMPY_AddLCSSAPass(pass_manager: LLVMPassManagerRef);
-
-    pub fn LLVMPY_AddLoopDeletionPass(pass_manager: LLVMPassManagerRef);
-
-    pub fn LLVMPY_AddSingleLoopExtractorPass(pass_manager: LLVMPassManagerRef);
-
-    pub fn LLVMPY_AddLoopStrengthReducePass(pass_manager: LLVMPassManagerRef);
-
-    pub fn LLVMPY_AddLoopSimplificationPass(pass_manager: LLVMPassManagerRef);
-
-    pub fn LLVMPY_AddLoopUnrollPass(pass_manager: LLVMPassManagerRef);
-
-    pub fn LLVMPY_AddLoopUnrollAndJamPass(pass_manager: LLVMPassManagerRef);
-
-    pub fn LLVMPY_AddLoopUnswitchPass(
-        pass_manager: LLVMPassManagerRef,
-        optimise_for_size: bool,
-        has_branch_divergence: bool,
-    );
-
-    pub fn LLVMPY_AddLowerAtomicPass(pass_manager: LLVMPassManagerRef);
-
-    pub fn LLVMPY_AddLowerInvokePass(pass_manager: LLVMPassManagerRef);
-
-    pub fn LLVMPY_AddLowerSwitchPass(pass_manager: LLVMPassManagerRef);
-
-    pub fn LLVMPY_AddMemCpyOptimizationPass(pass_manager: LLVMPassManagerRef);
-
-    pub fn LLVMPY_AddMergeFunctionsPass(pass_manager: LLVMPassManagerRef);
-
-    pub fn LLVMPY_AddMergeReturnsPass(pass_manager: LLVMPassManagerRef);
-
-    pub fn LLVMPY_AddPartialInliningPass(pass_manager: LLVMPassManagerRef);
-
-    pub fn LLVMPY_AddPruneExceptionHandlingPass(pass_manager: LLVMPassManagerRef);
-
-    pub fn LLVMPY_AddReassociatePass(pass_manager: LLVMPassManagerRef);
-
-    pub fn LLVMPY_AddDemoteRegisterToMemoryPass(pass_manager: LLVMPassManagerRef);
-
-    pub fn LLVMPY_AddSinkPass(pass_manager: LLVMPassManagerRef);
-
-    pub fn LLVMPY_AddStripSymbolsPass(pass_manager: LLVMPassManagerRef);
-
-    pub fn LLVMPY_AddStripDeadDebugInfoPass(pass_manager: LLVMPassManagerRef);
-
-    pub fn LLVMPY_AddStripDeadPrototypesPass(pass_manager: LLVMPassManagerRef);
-
-    pub fn LLVMPY_AddStripDebugDeclarePrototypesPass(pass_manager: LLVMPassManagerRef);
-
-    pub fn LLVMPY_AddStripNondebugSymbolsPass(pass_manager: LLVMPassManagerRef);
-
-    pub fn LLVMPY_AddTailCallEliminationPass(pass_manager: LLVMPassManagerRef);
-
-    pub fn LLVMPY_AddCFGSimplificationPass(pass_manager: LLVMPassManagerRef);
-
-    pub fn LLVMPY_AddGVNPass(pass_manager: LLVMPassManagerRef);
-
-    pub fn LLVMPY_AddInstructionCombiningPass(pass_manager: LLVMPassManagerRef);
-
-    pub fn LLVMPY_AddLICMPass(pass_manager: LLVMPassManagerRef);
-
-    pub fn LLVMPY_AddSCCPPass(pass_manager: LLVMPassManagerRef);
-
-    pub fn LLVMPY_AddSROAPass(pass_manager: LLVMPassManagerRef);
-
-    pub fn LLVMPY_AddTypeBasedAliasAnalysisPass(pass_manager: LLVMPassManagerRef);
-
-    pub fn LLVMPY_AddBasicAliasAnalysisPass(pass_manager: LLVMPassManagerRef);
-
-    pub fn LLVMPY_LLVMAddLoopRotatePass(pass_manager: LLVMPassManagerRef);
-    
-    pub fn LLVMPY_GetProcessTriple(out: *mut *const c_char);
-
-    pub fn LLVMPY_GetHostCPUFeatures(out: *mut *const c_char) -> i32;
-
-    pub fn LLVMPY_GetDefaultTargetTriple(out: *mut *const c_char);
-
-    pub fn LLVMPY_GetHostCPUName(out: *mut *const c_char);
-
-    pub fn LLVMPY_GetTripleObjectFormat(triple_str: *mut *const c_char) -> i32;
-
-    pub fn LLVMPY_CreateTargetData(str_rep: *mut *const c_char) -> LLVMTargetDataRef;
-
-    pub fn LLVMPY_CopyStringRepOfTargetData(
-        target_data: LLVMTargetDataRef,
-        out: *mut *mut c_char,
-    );
-
-    pub fn LLVMPY_DisposeTargetData(target_data: LLVMTargetDataRef);
-
-    pub fn LLVMPY_ABISizeOfType(target_data: LLVMTargetDataRef, ty: LLVMTypeRef) -> i64;
-
-    pub fn LLVMPY_OffsetOfElement(target_data: LLVMTargetDataRef, element: i32) -> i64;
-
-    pub fn LLVMPY_ABISizeOfElementType(target_data: LLVMTargetDataRef, ty: LLVMTypeRef) -> i64;
-
-    pub fn LLVMPY_ABIAlignmentOfElementType(target_data: LLVMTargetDataRef, ty: LLVMTypeRef) -> i64;
-
-    pub fn LLVMPY_GetTargetFromTriple(
-        triple: *mut *const c_char,
-        err_out: *mut *const c_char,
-    ) -> LLVMTargetRef;
-
-    pub fn LLVMPY_GetTargetName(target: LLVMTargetRef) -> *const c_char;
-
-    pub fn LLVMPY_GetTargetDescription(target: LLVMTargetRef) -> *const c_char;
-
-    pub fn LLVMPY_CreateTargetMachine(
-        target: LLVMTargetRef,
-        triple: *const c_char,
-        cpu: *const c_char,
-        features: *const c_char,
-        opt_level: i32,
-        reloc_model: *const c_char,
-        code_model: *const c_char,
-        print_mc: i32,
-        jit: i32,
-        abi_name: *const c_char,
-    ) -> LLVMTargetMachineRef;
-
-    pub fn LLVMPY_DisposeTargetMachine(target_machine: LLVMTargetMachineRef);
-
-    pub fn LLVMPY_GetTargetMachineTriple(
-        target_machine: LLVMTargetMachineRef,
-        out: *mut *const c_char,
-    );
-
-    pub fn LLVMPY_SetTargetMachineAsmVerbosity(
-        target_machine: LLVMTargetMachineRef,
-        verbose: i32,
-    );
-
-    pub fn LLVMPY_TargetMachineEmitToMemory(
-        target_machine: LLVMTargetMachineRef,
-        module: LLVMModuleRef,
-        use_object: i32,
-        err_out: *mut *const c_char,
-    ) -> LLVMMemoryBufferRef;
-
-    pub fn LLVMPY_CreateTargetMachineData(
-        target_machine: LLVMTargetMachineRef,
-    ) -> LLVMTargetDataRef;
-
-    pub fn LLVMPY_AddAnalysisPasses(
-        target_machine: LLVMTargetMachineRef,
-        pass_manager: LLVMPassManagerRef,
-    );
-
-    pub fn LLVMPY_GetBufferStart(buffer: LLVMMemoryBufferRef) -> *const c_void;
-
-    pub fn LLVMPY_GetBufferSize(buffer: LLVMMemoryBufferRef) -> usize;  // TODO: may need to be isize for size_t
-
-    pub fn LLVMPY_DisposeMemoryBuffer(buffer: LLVMMemoryBufferRef);
-
-    pub fn LLVMPY_HasSVMLSupport() -> i32;
-    
-        pub fn LLVMPY_PassManagerBuilderCreate() -> LLVMPassManagerBuilderRef;
-
-    pub fn LLVMPY_PassManagerBuilderDispose(builder: LLVMPassManagerBuilderRef);
-
-    pub fn LLVMPY_PassManagerBuilderGetOptLevel(builder: LLVMPassManagerBuilderRef) -> usize;
-
-    pub fn LLVMPY_PassManagerBuilderSetOptLevel(
-        builder: LLVMPassManagerBuilderRef,
-        level: usize,
-    );
-
-    pub fn LLVMPY_PassManagerBuilderGetSizeLevel(builder: LLVMPassManagerBuilderRef) -> usize;
-
-    pub fn LLVMPY_PassManagerBuilderSetSizeLevel(
-        builder: LLVMPassManagerBuilderRef,
-        level: usize
-    );
-
-    pub fn LLVMPY_PassManagerBuilderGetDisableUnrollLoops(builder: LLVMPassManagerBuilderRef) -> i32;
-
-    pub fn LLVMPY_PassManagerBuilderSetDisableUnrollLoops(
-        builder: LLVMPassManagerBuilderRef,
-        value: LLVMBool,
-    );
-
-    pub fn LLVMPY_PassManagerBuilderUseInlinerWithThreshold(
-        builder: LLVMPassManagerBuilderRef,
-        threshold: usize,
-    );
-
-    pub fn LLVMPY_PassManagerBuilderPopulateFunctionPassManager(
-        builder: LLVMPassManagerBuilderRef,
-        manager: LLVMPassManagerRef,
-    );
-
-    pub fn LLVMPY_PassManagerBuilderSetLoopVectorize(
-        builder: LLVMPassManagerBuilderRef,
-        value: i32,
-    );
-
-    pub fn LLVMPY_PassManagerBuilderGetLoopVectorize(
-        builder: LLVMPassManagerBuilderRef,
-    ) -> i32;
-
-    pub fn LLVMPY_PassManagerBuilderSetSLPVectorize(
-        builder: LLVMPassManagerBuilderRef,
-        value: i32,
-    );
-
-    pub fn LLVMPY_PassManagerBuilderGetSLPVectorize(
-        builder: LLVMPassManagerBuilderRef,
-    ) -> i32;
-    
-    
-    pub fn LLVMPY_FunctionAttributesIter(
-        value: LLVMValueRef
-    ) -> LLVMAttributeListIteratorRef;
-
-    pub fn LLVMPY_ArgumentAttributesIter(
-        value: LLVMValueRef,
-    ) -> LLVMAttributeSetIteratorRef;
-
-    pub fn LLVMPY_CallInstAttributesIter(
-        value: LLVMValueRef,
-    ) -> LLVMAttributeListIteratorRef;
-
-    pub fn LLVMPY_InvokeInstAttributesIter(
-        value: LLVMValueRef,
-    ) -> LLVMAttributeListIteratorRef;
-
-    pub fn LLVMPY_GlobalAttributesIter(
-        value: LLVMValueRef,
-    ) -> LLVMAttributeSetIteratorRef;
-
-    pub fn LLVMPY_FunctionBlocksIter(
-        value: LLVMValueRef,
-    ) -> LLVMBlocksIteratorRef;
-
-    pub fn LLVMPY_FunctionArgumentsIter(
-        value: LLVMValueRef,
-    ) -> LLVMArgumentsIteratorRef;
-
-    pub fn LLVMPY_BlockInstructionsIter(
-        value: LLVMValueRef,
-    ) -> LLVMInstructionsIteratorRef;
-
-    pub fn LLVMPY_InstructionOperandsIter(
-        value: LLVMValueRef,
-    ) -> LLVMOperandsIteratorRef;
-
-    pub fn LLVMPY_AttributeListIterNext(
-        iter: LLVMAttributeListIteratorRef,
-    ) -> *const c_char;
-
-    pub fn LLVMPY_BlocksIterNext(
-        iter: LLVMBlocksIteratorRef,
-    ) -> LLVMValueRef;
-
-    pub fn LLVMPY_ArgumentsIterNext(
-        iter: LLVMArgumentsIteratorRef,
-    ) -> LLVMValueRef;
-
-    pub fn LLVMPY_InstructionsIterNext(
-        iter: LLVMInstructionsIteratorRef
-    ) -> LLVMValueRef;
-
-    pub fn LLVMPY_OperandsIterNext(
-        iter: LLVMOperandsIteratorRef,
-    ) -> LLVMValueRef;
-
-    pub fn LLVMPY_DisposeAttributeListIter(iter: LLVMAttributeListIteratorRef);
-
-    pub fn LLVMPY_DisposeAttributeSetIter(iter: LLVMAttributeSetIteratorRef);
-
-    pub fn LLVMPY_DisposeBlocksIter(iter: LLVMBlocksIteratorRef);
-
-    pub fn LLVMPY_DisposeArgumentsIter(iter: LLVMArgumentsIteratorRef);
-
-    pub fn LLVMPY_DisposeInstructionsIter(iter: LLVMInstructionsIteratorRef);
-
-    pub fn LLVMPY_DisposeOperandsIter(iter: LLVMOperandsIteratorRef);
-
-    pub fn LLVMPY_PrintValueToString(val: LLVMValueRef, out: *mut *const c_char);
-
-    pub fn LLVMPY_GetValueName(val: LLVMValueRef) -> *const c_char;
-
-    pub fn LLVMPY_SetValueName(val: LLVMValueRef, name: *const c_char);
-
-    pub fn LLVMPY_GetGlobalParent(val: LLVMValueRef) -> LLVMModuleRef;
-
-    pub fn LLVMPY_TypeOf(val: LLVMValueRef) -> LLVMTypeRef;
-
-    pub fn LLVMPY_PrintType(ty: LLVMTypeRef) -> *const c_char;
-
-    pub fn LLVMPY_GetTypeName(ty: LLVMTypeRef) -> *const c_char;
-
-    pub fn LLVMPY_TypeIsPointer(ty: LLVMTypeRef) -> bool;
-
-    pub fn LLVMPY_GetElementType(ty: LLVMTypeRef) -> LLVMTypeRef;
-
-    pub fn LLVMPY_SetLinkage(ty: LLVMTypeRef, linkage: i32);
-
-    pub fn LLVMPY_GetLinkage(ty: LLVMTypeRef) -> i32;
-
-    pub fn LLVMPY_SetVisibility(ty: LLVMTypeRef, visibility: i32);
-
-    pub fn LLVMPY_GetVisibility(ty: LLVMTypeRef) -> i32;
-
-    pub fn LLVMPY_SetDLLStorageClass(ty: LLVMTypeRef, class: i32);
-
-    pub fn LLVMPY_GetDLLStorageClass(ty: LLVMTypeRef) -> i32;
-
-    pub fn LLVMPY_GetEnumAttributeKindForName(name: *const c_char, len: usize) -> usize;
-
-    pub fn LLVMPY_AddFunctionAttr(val: LLVMValueRef, kind: usize);
-
-    pub fn LLVMPY_IsDeclaration(val: LLVMValueRef) -> i32;
-
-    pub fn LLVMPY_WriteCFG(val: LLVMValueRef, out_str: *mut *const c_char, show_inst: i32);
-
-    pub fn LLVMPY_GetOpcodeName(val: LLVMValueRef) -> *const c_char;
-}
+pub type LLVMPY_SetCommandLine = unsafe extern "C" fn(*const c_char, *const c_char);
+pub type LLVMPY_ParseAssembly = unsafe extern "C" fn(
+    LLVMContextRef,
+    *const c_char,
+    *mut *const c_char,
+) -> LLVMContextRef;
+pub type LLVMPY_WriteBitcodeToString =
+    unsafe extern "C" fn(LLVMContextRef, *mut *const c_char, *mut usize);
+pub type LLVMPY_ParseBitcode = unsafe extern "C" fn(
+    LLVMContextRef,
+    *const c_char,
+    usize,
+    *mut *const c_char,
+) -> LLVMModuleRef;
+pub type LLVMPY_CreateString = unsafe extern "C" fn(*const c_char) -> *const c_char;
+pub type LLVMPY_CreateByteString =
+    unsafe extern "C" fn(*const c_char, usize) -> *const c_char;
+pub type LLVMPY_DisposeString = unsafe extern "C" fn(*const c_char);
+pub type LLVMPY_GetGlobalContext = unsafe extern "C" fn() -> LLVMContextRef;
+pub type LLVMPY_ContextCreate = unsafe extern "C" fn() -> LLVMContextRef;
+pub type LLVMPY_ContextDispose = unsafe extern "C" fn(LLVMContextRef);
+pub type LLVMPY_AddRefPrunePass = unsafe extern "C" fn(LLVMPassManagerRef, i32, usize);
+pub type LLVMPY_DumpRefPruneStats = unsafe extern "C" fn(*mut PruneStats, bool);
+pub type LLVMPY_SearchAddressOfSymbol =
+    unsafe extern "C" fn(*const c_char) -> *const c_void;
+pub type LLVMPY_AddSymbol = unsafe extern "C" fn(*const c_char, *const c_void);
+pub type LLVMPY_LoadLibraryPermanently =
+    unsafe extern "C" fn(*const c_char, *mut *const c_char) -> bool;
+pub type LLVMPY_LinkInMCJIT = unsafe extern "C" fn();
+pub type LLVMPY_DisposeExecutionEngine = unsafe extern "C" fn(LLVMExecutionEngineRef);
+pub type LLVMPY_AddModule = unsafe extern "C" fn(LLVMExecutionEngineRef, LLVMModuleRef);
+pub type LLVMPY_RemoveModule =
+    unsafe extern "C" fn(LLVMExecutionEngineRef, LLVMModuleRef, *mut *mut c_char) -> i32;
+pub type LLVMPY_FinalizeObject = unsafe extern "C" fn(LLVMExecutionEngineRef);
+pub type LLVMPY_CreateMCJITCompiler = unsafe extern "C" fn(
+    LLVMExecutionEngineRef,
+    LLVMTargetMachineRef,
+    *mut *const c_char,
+) -> LLVMExecutionEngineRef;
+pub type LLVMPY_GetGlobalValueAddress =
+    unsafe extern "C" fn(LLVMExecutionEngineRef, *const c_char) -> u64;
+pub type LLVMPY_GetFunctionAddress =
+    unsafe extern "C" fn(LLVMExecutionEngineRef, *const c_char) -> u64;
+pub type LLVMPY_RunStaticConstructors = unsafe extern "C" fn(LLVMExecutionEngineRef);
+pub type LLVMPY_RunStaticDestructors = unsafe extern "C" fn(LLVMExecutionEngineRef);
+pub type LLVMPY_AddGlobalMapping = unsafe extern "C" fn(LLVMExecutionEngineRef);
+pub type LLVMPY_GetExecutionEngineTargetData =
+    unsafe extern "C" fn(LLVMExecutionEngineRef) -> LLVMTargetDataRef;
+pub type LLVMPY_TryAllocateExecutableMemory = unsafe extern "C" fn() -> i32;
+pub type LLVMPY_EnableJITEvents = unsafe extern "C" fn(LLVMExecutionEngineRef) -> bool;
+pub type LLVMPY_MCJITAddObjectFile =
+    unsafe extern "C" fn(LLVMExecutionEngineRef, LLVMObjectFileRef);
+pub type LLVMPY_CreateObjectCache = unsafe extern "C" fn(
+    ObjectCacheNotifyFunc,
+    ObjectCacheGetObjectFunc,
+    *mut c_void,
+) -> LLVMObjectCacheRef;
+pub type LLVMPY_DisposeObjectCache = unsafe extern "C" fn(LLVMObjectCacheRef);
+pub type LLVMPY_SetObjectCache =
+    unsafe extern "C" fn(LLVMExecutionEngineRef, LLVMObjectCacheRef);
+pub type LLVMPY_Shutdown = unsafe extern "C" fn();
+pub type LLVMPY_GetVersionInfo = unsafe extern "C" fn() -> u32;
+pub type LLVMPY_LinkModules =
+    unsafe extern "C" fn(LLVMModuleRef, LLVMModuleRef, *mut *const c_char) -> i32;
+pub type LLVMPY_DisposeModule = unsafe extern "C" fn(LLVMModuleRef);
+pub type LLVMPY_PrintModuleToString =
+    unsafe extern "C" fn(LLVMModuleRef, *mut *const c_char);
+pub type LLVMPY_GetModuleSourceFileName =
+    unsafe extern "C" fn(LLVMModuleRef) -> *const c_char;
+pub type LLVMPY_GetModuleName = unsafe extern "C" fn(LLVMModuleRef) -> *const c_char;
+pub type LLVMPY_SetModuleName = unsafe extern "C" fn(LLVMModuleRef, *const c_char);
+pub type LLVMPY_GetNamedFunction =
+    unsafe extern "C" fn(LLVMModuleRef, *const c_char) -> LLVMValueRef;
+pub type LLVMPY_GetNamedGlobalVariable =
+    unsafe extern "C" fn(LLVMModuleRef, *const c_char) -> LLVMValueRef;
+pub type LLVMPY_GetNamedStructType =
+    unsafe extern "C" fn(LLVMModuleRef, *const c_char) -> LLVMTypeRef;
+pub type LLVMPY_VerifyModule =
+    unsafe extern "C" fn(LLVMModuleRef, *mut *const c_char) -> i32;
+pub type LLVMPY_GetDataLayout = unsafe extern "C" fn(LLVMModuleRef, *mut *const c_char);
+pub type LLVMPY_SetDataLayout = unsafe extern "C" fn(LLVMModuleRef, *const c_char);
+pub type LLVMPY_GetTarget = unsafe extern "C" fn(LLVMModuleRef, *mut *const c_char);
+pub type LLVMPY_SetTarget = unsafe extern "C" fn(LLVMModuleRef, *const c_char);
+pub type LLVMPY_ModuleGlobalsIter =
+    unsafe extern "C" fn(LLVMModuleRef) -> LLVMGlobalsIteratorRef;
+pub type LLVMPY_ModuleFunctionsIter =
+    unsafe extern "C" fn(LLVMModuleRef) -> LLVMFunctionsIteratorRef;
+pub type LLVMPY_ModuleTypesIter =
+    unsafe extern "C" fn(LLVMModuleRef) -> LLVMTypesIteratorRef;
+pub type LLVMPY_GlobalsIterNext =
+    unsafe extern "C" fn(LLVMGlobalsIteratorRef) -> LLVMValueRef;
+pub type LLVMPY_FunctionsIterNext =
+    unsafe extern "C" fn(LLVMFunctionsIteratorRef) -> LLVMValueRef;
+pub type LLVMPY_TypesIterNext =
+    unsafe extern "C" fn(LLVMTypesIteratorRef) -> LLVMTypeRef;
+pub type LLVMPY_DisposeGlobalsIter = unsafe extern "C" fn(LLVMGlobalsIteratorRef);
+pub type LLVMPY_DisposeFunctionsIter = unsafe extern "C" fn(LLVMFunctionsIteratorRef);
+pub type LLVMPY_DisposeTypesIter = unsafe extern "C" fn(LLVMTypesIteratorRef);
+pub type LLVMPY_CloneModule = unsafe extern "C" fn(LLVMModuleRef) -> LLVMModuleRef;
+pub type LLVMPY_CreateObjectFile =
+    unsafe extern "C" fn(*const c_char, usize) -> LLVMObjectFileRef;
+pub type LLVMPY_DisposeObjectFile = unsafe extern "C" fn(LLVMObjectFileRef);
+pub type LLVMPY_GetSections =
+    unsafe extern "C" fn(LLVMObjectFileRef) -> LLVMSectionIteratorRef;
+pub type LLVMPY_DisposeSectionIterator = unsafe extern "C" fn(LLVMSectionIteratorRef);
+pub type LLVMPY_MoveToNextSection = unsafe extern "C" fn(LLVMSectionIteratorRef);
+pub type LLVMPY_IsSectionIteratorAtEnd =
+    unsafe extern "C" fn(LLVMObjectFileRef, LLVMSectionIteratorRef) -> bool;
+pub type LLVMPY_GetSectionName =
+    unsafe extern "C" fn(LLVMSectionIteratorRef) -> *const c_char;
+pub type LLVMPY_GetSectionAddress = unsafe extern "C" fn(LLVMSectionIteratorRef) -> u64;
+pub type LLVMPY_GetSectionContents =
+    unsafe extern "C" fn(LLVMSectionIteratorRef) -> *const c_char;
+pub type LLVMPY_GetSectionSize = unsafe extern "C" fn(LLVMSectionIteratorRef) -> u64;
+pub type LLVMPY_IsSectionText = unsafe extern "C" fn(LLVMSectionIteratorRef) -> bool;
+pub type LLVMPY_SetTimePasses = unsafe extern "C" fn(bool);
+pub type LLVMPY_ReportAndResetTimings = unsafe extern "C" fn(*mut *const c_char);
+pub type LLVMPY_CreatePassManager = unsafe extern "C" fn() -> LLVMPassManagerRef;
+pub type LLVMPY_DisposePassManager = unsafe extern "C" fn(LLVMPassManagerRef);
+pub type LLVMPY_CreateFunctionPassManager =
+    unsafe extern "C" fn(LLVMModuleRef) -> LLVMPassManagerRef;
+pub type LLVMPY_RunPassManagerWithRemarks = unsafe extern "C" fn(
+    LLVMPassManagerRef,
+    LLVMModuleRef,
+    *const c_char,
+    *const c_char,
+    *const c_char,
+) -> i32;
+pub type LLVMPY_RunPassManager =
+    unsafe extern "C" fn(LLVMPassManagerRef, LLVMModuleRef) -> i32;
+pub type LLVMPY_RunFunctionPassManagerWithRemarks = unsafe extern "C" fn(
+    LLVMPassManagerRef,
+    LLVMValueRef,
+    *const c_char,
+    *const c_char,
+    *const c_char,
+) -> i32;
+pub type LLVMPY_RunFunctionPassManager =
+    unsafe extern "C" fn(LLVMPassManagerRef, LLVMValueRef) -> i32;
+pub type LLVMPY_InitializeFunctionPassManager =
+    unsafe extern "C" fn(LLVMPassManagerRef) -> i32;
+pub type LLVMPY_FinalizeFunctionPassManager =
+    unsafe extern "C" fn(LLVMPassManagerRef) -> i32;
+pub type LLVMPY_AddAAEvalPass = unsafe extern "C" fn(LLVMPassManagerRef);
+pub type LLVMPY_AddBasicAAWrapperPass = unsafe extern "C" fn(LLVMPassManagerRef);
+pub type LLVMPY_AddDependenceAnalysisPass = unsafe extern "C" fn(LLVMPassManagerRef);
+pub type LLVMPY_AddCallGraphDOTPrinterPass = unsafe extern "C" fn(LLVMPassManagerRef);
+pub type LLVMPY_AddDotDomPrinterPass = unsafe extern "C" fn(LLVMPassManagerRef, bool);
+pub type LLVMPY_AddGlobalsModRefAAPass = unsafe extern "C" fn(LLVMPassManagerRef);
+pub type LLVMPY_AddDotPostDomPrinterPass =
+    unsafe extern "C" fn(LLVMPassManagerRef, bool);
+pub type LLVMPY_AddCFGPrinterPass = unsafe extern "C" fn(LLVMPassManagerRef);
+pub type LLVMPY_AddConstantMergePass = unsafe extern "C" fn(LLVMPassManagerRef);
+pub type LLVMPY_AddDeadStoreEliminationPass = unsafe extern "C" fn(LLVMPassManagerRef);
+pub type LLVMPY_AddReversePostOrderFunctionAttrsPass =
+    unsafe extern "C" fn(LLVMPassManagerRef);
+pub type LLVMPY_AddDeadArgEliminationPass = unsafe extern "C" fn(LLVMPassManagerRef);
+pub type LLVMPY_AddInstructionCountPass = unsafe extern "C" fn(LLVMPassManagerRef);
+pub type LLVMPY_AddIVUsersPass = unsafe extern "C" fn(LLVMPassManagerRef);
+pub type LLVMPY_AddLazyValueInfoPass = unsafe extern "C" fn(LLVMPassManagerRef);
+pub type LLVMPY_AddLintPass = unsafe extern "C" fn(LLVMPassManagerRef);
+pub type LLVMPY_AddModuleDebugInfoPrinterPass = unsafe extern "C" fn(LLVMPassManagerRef);
+pub type LLVMPY_AddRegionInfoPass = unsafe extern "C" fn(LLVMPassManagerRef);
+pub type LLVMPY_AddScalarEvolutionAAPass = unsafe extern "C" fn(LLVMPassManagerRef);
+pub type LLVMPY_AddAggressiveDCEPass = unsafe extern "C" fn(LLVMPassManagerRef);
+pub type LLVMPY_AddAlwaysInlinerPass = unsafe extern "C" fn(LLVMPassManagerRef, bool);
+pub type LLVMPY_AddArgPromotionPass = unsafe extern "C" fn(LLVMPassManagerRef, u32);
+pub type LLVMPY_AddBreakCriticalEdgesPass = unsafe extern "C" fn(LLVMPassManagerRef);
+pub type LLVMPY_AddFunctionAttrsPass = unsafe extern "C" fn(LLVMPassManagerRef);
+pub type LLVMPY_AddFunctionInliningPass = unsafe extern "C" fn(LLVMPassManagerRef);
+pub type LLVMPY_AddGlobalOptimizerPass = unsafe extern "C" fn(LLVMPassManagerRef);
+pub type LLVMPY_AddGlobalDCEPass = unsafe extern "C" fn(LLVMPassManagerRef);
+pub type LLVMPY_AddIPSCCPPass = unsafe extern "C" fn(LLVMPassManagerRef);
+pub type LLVMPY_AddDeadCodeEliminationPass = unsafe extern "C" fn(LLVMPassManagerRef);
+pub type LLVMPY_AddAggressiveInstructionCombiningPass =
+    unsafe extern "C" fn(LLVMPassManagerRef);
+pub type LLVMPY_AddInternalizePass = unsafe extern "C" fn(LLVMPassManagerRef);
+pub type LLVMPY_AddJumpThreadingPass = unsafe extern "C" fn(LLVMPassManagerRef, i32);
+pub type LLVMPY_AddLCSSAPass = unsafe extern "C" fn(LLVMPassManagerRef);
+pub type LLVMPY_AddLoopDeletionPass = unsafe extern "C" fn(LLVMPassManagerRef);
+pub type LLVMPY_AddSingleLoopExtractorPass = unsafe extern "C" fn(LLVMPassManagerRef);
+pub type LLVMPY_AddLoopStrengthReducePass = unsafe extern "C" fn(LLVMPassManagerRef);
+pub type LLVMPY_AddLoopSimplificationPass = unsafe extern "C" fn(LLVMPassManagerRef);
+pub type LLVMPY_AddLoopUnrollPass = unsafe extern "C" fn(LLVMPassManagerRef);
+pub type LLVMPY_AddLoopUnrollAndJamPass = unsafe extern "C" fn(LLVMPassManagerRef);
+pub type LLVMPY_AddLoopUnswitchPass =
+    unsafe extern "C" fn(LLVMPassManagerRef, bool, bool);
+pub type LLVMPY_AddLowerAtomicPass = unsafe extern "C" fn(LLVMPassManagerRef);
+pub type LLVMPY_AddLowerInvokePass = unsafe extern "C" fn(LLVMPassManagerRef);
+pub type LLVMPY_AddLowerSwitchPass = unsafe extern "C" fn(LLVMPassManagerRef);
+pub type LLVMPY_AddMemCpyOptimizationPass = unsafe extern "C" fn(LLVMPassManagerRef);
+pub type LLVMPY_AddMergeFunctionsPass = unsafe extern "C" fn(LLVMPassManagerRef);
+pub type LLVMPY_AddMergeReturnsPass = unsafe extern "C" fn(LLVMPassManagerRef);
+pub type LLVMPY_AddPartialInliningPass = unsafe extern "C" fn(LLVMPassManagerRef);
+pub type LLVMPY_AddPruneExceptionHandlingPass = unsafe extern "C" fn(LLVMPassManagerRef);
+pub type LLVMPY_AddReassociatePass = unsafe extern "C" fn(LLVMPassManagerRef);
+pub type LLVMPY_AddDemoteRegisterToMemoryPass = unsafe extern "C" fn(LLVMPassManagerRef);
+pub type LLVMPY_AddSinkPass = unsafe extern "C" fn(LLVMPassManagerRef);
+pub type LLVMPY_AddStripSymbolsPass = unsafe extern "C" fn(LLVMPassManagerRef);
+pub type LLVMPY_AddStripDeadDebugInfoPass = unsafe extern "C" fn(LLVMPassManagerRef);
+pub type LLVMPY_AddStripDeadPrototypesPass = unsafe extern "C" fn(LLVMPassManagerRef);
+pub type LLVMPY_AddStripDebugDeclarePrototypesPass =
+    unsafe extern "C" fn(LLVMPassManagerRef);
+pub type LLVMPY_AddStripNondebugSymbolsPass = unsafe extern "C" fn(LLVMPassManagerRef);
+pub type LLVMPY_AddTailCallEliminationPass = unsafe extern "C" fn(LLVMPassManagerRef);
+pub type LLVMPY_AddCFGSimplificationPass = unsafe extern "C" fn(LLVMPassManagerRef);
+pub type LLVMPY_AddGVNPass = unsafe extern "C" fn(LLVMPassManagerRef);
+pub type LLVMPY_AddInstructionCombiningPass = unsafe extern "C" fn(LLVMPassManagerRef);
+pub type LLVMPY_AddLICMPass = unsafe extern "C" fn(LLVMPassManagerRef);
+pub type LLVMPY_AddSCCPPass = unsafe extern "C" fn(LLVMPassManagerRef);
+pub type LLVMPY_AddSROAPass = unsafe extern "C" fn(LLVMPassManagerRef);
+pub type LLVMPY_AddTypeBasedAliasAnalysisPass = unsafe extern "C" fn(LLVMPassManagerRef);
+pub type LLVMPY_AddBasicAliasAnalysisPass = unsafe extern "C" fn(LLVMPassManagerRef);
+pub type LLVMPY_LLVMAddLoopRotatePass = unsafe extern "C" fn(LLVMPassManagerRef);
+pub type LLVMPY_GetProcessTriple = unsafe extern "C" fn(*mut *const c_char);
+pub type LLVMPY_GetHostCPUFeatures = unsafe extern "C" fn(*mut *const c_char) -> i32;
+pub type LLVMPY_GetDefaultTargetTriple = unsafe extern "C" fn(*mut *const c_char);
+pub type LLVMPY_GetHostCPUName = unsafe extern "C" fn(*mut *const c_char);
+pub type LLVMPY_GetTripleObjectFormat = unsafe extern "C" fn(*mut *const c_char) -> i32;
+pub type LLVMPY_CreateTargetData =
+    unsafe extern "C" fn(*mut *const c_char) -> LLVMTargetDataRef;
+pub type LLVMPY_CopyStringRepOfTargetData =
+    unsafe extern "C" fn(LLVMTargetDataRef, *mut *mut c_char);
+pub type LLVMPY_DisposeTargetData = unsafe extern "C" fn(LLVMTargetDataRef);
+pub type LLVMPY_ABISizeOfType =
+    unsafe extern "C" fn(LLVMTargetDataRef, LLVMTypeRef) -> i64;
+pub type LLVMPY_OffsetOfElement = unsafe extern "C" fn(LLVMTargetDataRef, i32) -> i64;
+pub type LLVMPY_ABISizeOfElementType =
+    unsafe extern "C" fn(LLVMTargetDataRef, LLVMTypeRef) -> i64;
+pub type LLVMPY_ABIAlignmentOfElementType =
+    unsafe extern "C" fn(LLVMTargetDataRef, LLVMTypeRef) -> i64;
+pub type LLVMPY_GetTargetFromTriple =
+    unsafe extern "C" fn(*mut *const c_char, *mut *const c_char) -> LLVMTargetRef;
+pub type LLVMPY_GetTargetName = unsafe extern "C" fn(LLVMTargetRef) -> *const c_char;
+pub type LLVMPY_GetTargetDescription =
+    unsafe extern "C" fn(LLVMTargetRef) -> *const c_char;
+pub type LLVMPY_CreateTargetMachine = unsafe extern "C" fn(
+    LLVMTargetRef,
+    *const c_char,
+    *const c_char,
+    *const c_char,
+    i32,
+    *const c_char,
+    *const c_char,
+    i32,
+    i32,
+    *const c_char,
+) -> LLVMTargetMachineRef;
+pub type LLVMPY_DisposeTargetMachine = unsafe extern "C" fn(LLVMTargetMachineRef);
+pub type LLVMPY_GetTargetMachineTriple =
+    unsafe extern "C" fn(LLVMTargetMachineRef, *mut *const c_char);
+pub type LLVMPY_SetTargetMachineAsmVerbosity =
+    unsafe extern "C" fn(LLVMTargetMachineRef, i32);
+pub type LLVMPY_TargetMachineEmitToMemory = unsafe extern "C" fn(
+    LLVMTargetMachineRef,
+    LLVMModuleRef,
+    i32,
+    *mut *const c_char,
+) -> LLVMMemoryBufferRef;
+pub type LLVMPY_CreateTargetMachineData =
+    unsafe extern "C" fn(LLVMTargetMachineRef) -> LLVMTargetDataRef;
+pub type LLVMPY_AddAnalysisPasses =
+    unsafe extern "C" fn(LLVMTargetMachineRef, LLVMPassManagerRef);
+pub type LLVMPY_GetBufferStart =
+    unsafe extern "C" fn(LLVMMemoryBufferRef) -> *const c_void;
+pub type LLVMPY_GetBufferSize = unsafe extern "C" fn(LLVMMemoryBufferRef) -> usize; // TODO: may need to be isize for size_t;
+pub type LLVMPY_DisposeMemoryBuffer = unsafe extern "C" fn(LLVMMemoryBufferRef);
+pub type LLVMPY_HasSVMLSupport = unsafe extern "C" fn() -> i32;
+pub type LLVMPY_PassManagerBuilderCreate =
+    unsafe extern "C" fn() -> LLVMPassManagerBuilderRef;
+pub type LLVMPY_PassManagerBuilderDispose =
+    unsafe extern "C" fn(LLVMPassManagerBuilderRef);
+pub type LLVMPY_PassManagerBuilderGetOptLevel =
+    unsafe extern "C" fn(LLVMPassManagerBuilderRef) -> usize;
+pub type LLVMPY_PassManagerBuilderSetOptLevel =
+    unsafe extern "C" fn(LLVMPassManagerBuilderRef, usize);
+pub type LLVMPY_PassManagerBuilderGetSizeLevel =
+    unsafe extern "C" fn(LLVMPassManagerBuilderRef) -> usize;
+pub type LLVMPY_PassManagerBuilderSetSizeLevel =
+    unsafe extern "C" fn(LLVMPassManagerBuilderRef, usize);
+pub type LLVMPY_PassManagerBuilderGetDisableUnrollLoops =
+    unsafe extern "C" fn(LLVMPassManagerBuilderRef) -> i32;
+pub type LLVMPY_PassManagerBuilderSetDisableUnrollLoops =
+    unsafe extern "C" fn(LLVMPassManagerBuilderRef, LLVMBool);
+pub type LLVMPY_PassManagerBuilderUseInlinerWithThreshold =
+    unsafe extern "C" fn(LLVMPassManagerBuilderRef, usize);
+pub type LLVMPY_PassManagerBuilderPopulateFunctionPassManager =
+    unsafe extern "C" fn(LLVMPassManagerBuilderRef, LLVMPassManagerRef);
+pub type LLVMPY_PassManagerBuilderSetLoopVectorize =
+    unsafe extern "C" fn(LLVMPassManagerBuilderRef, i32);
+pub type LLVMPY_PassManagerBuilderGetLoopVectorize =
+    unsafe extern "C" fn(LLVMPassManagerBuilderRef) -> i32;
+pub type LLVMPY_PassManagerBuilderSetSLPVectorize =
+    unsafe extern "C" fn(LLVMPassManagerBuilderRef, i32);
+pub type LLVMPY_PassManagerBuilderGetSLPVectorize =
+    unsafe extern "C" fn(LLVMPassManagerBuilderRef) -> i32;
+pub type LLVMPY_FunctionAttributesIter =
+    unsafe extern "C" fn(LLVMValueRef) -> LLVMAttributeListIteratorRef;
+pub type LLVMPY_ArgumentAttributesIter =
+    unsafe extern "C" fn(LLVMValueRef) -> LLVMAttributeSetIteratorRef;
+pub type LLVMPY_CallInstAttributesIter =
+    unsafe extern "C" fn(LLVMValueRef) -> LLVMAttributeListIteratorRef;
+pub type LLVMPY_InvokeInstAttributesIter =
+    unsafe extern "C" fn(LLVMValueRef) -> LLVMAttributeListIteratorRef;
+pub type LLVMPY_GlobalAttributesIter =
+    unsafe extern "C" fn(LLVMValueRef) -> LLVMAttributeSetIteratorRef;
+pub type LLVMPY_FunctionBlocksIter =
+    unsafe extern "C" fn(LLVMValueRef) -> LLVMBlocksIteratorRef;
+pub type LLVMPY_FunctionArgumentsIter =
+    unsafe extern "C" fn(LLVMValueRef) -> LLVMArgumentsIteratorRef;
+pub type LLVMPY_BlockInstructionsIter =
+    unsafe extern "C" fn(LLVMValueRef) -> LLVMInstructionsIteratorRef;
+pub type LLVMPY_InstructionOperandsIter =
+    unsafe extern "C" fn(LLVMValueRef) -> LLVMOperandsIteratorRef;
+pub type LLVMPY_AttributeListIterNext =
+    unsafe extern "C" fn(LLVMAttributeListIteratorRef) -> *const c_char;
+pub type LLVMPY_BlocksIterNext =
+    unsafe extern "C" fn(LLVMBlocksIteratorRef) -> LLVMValueRef;
+pub type LLVMPY_ArgumentsIterNext =
+    unsafe extern "C" fn(LLVMArgumentsIteratorRef) -> LLVMValueRef;
+pub type LLVMPY_InstructionsIterNext =
+    unsafe extern "C" fn(LLVMInstructionsIteratorRef) -> LLVMValueRef;
+pub type LLVMPY_OperandsIterNext =
+    unsafe extern "C" fn(LLVMOperandsIteratorRef) -> LLVMValueRef;
+pub type LLVMPY_DisposeAttributeListIter =
+    unsafe extern "C" fn(LLVMAttributeListIteratorRef);
+pub type LLVMPY_DisposeAttributeSetIter =
+    unsafe extern "C" fn(LLVMAttributeSetIteratorRef);
+pub type LLVMPY_DisposeBlocksIter = unsafe extern "C" fn(LLVMBlocksIteratorRef);
+pub type LLVMPY_DisposeArgumentsIter = unsafe extern "C" fn(LLVMArgumentsIteratorRef);
+pub type LLVMPY_DisposeInstructionsIter =
+    unsafe extern "C" fn(LLVMInstructionsIteratorRef);
+pub type LLVMPY_DisposeOperandsIter = unsafe extern "C" fn(LLVMOperandsIteratorRef);
+pub type LLVMPY_PrintValueToString =
+    unsafe extern "C" fn(LLVMValueRef, *mut *const c_char);
+pub type LLVMPY_GetValueName = unsafe extern "C" fn(LLVMValueRef) -> *const c_char;
+pub type LLVMPY_SetValueName = unsafe extern "C" fn(LLVMValueRef, *const c_char);
+pub type LLVMPY_GetGlobalParent = unsafe extern "C" fn(LLVMValueRef) -> LLVMModuleRef;
+pub type LLVMPY_TypeOf = unsafe extern "C" fn(LLVMValueRef) -> LLVMTypeRef;
+pub type LLVMPY_PrintType = unsafe extern "C" fn(LLVMTypeRef) -> *const c_char;
+pub type LLVMPY_GetTypeName = unsafe extern "C" fn(LLVMTypeRef) -> *const c_char;
+pub type LLVMPY_TypeIsPointer = unsafe extern "C" fn(LLVMTypeRef) -> bool;
+pub type LLVMPY_GetElementType = unsafe extern "C" fn(LLVMTypeRef) -> LLVMTypeRef;
+pub type LLVMPY_SetLinkage = unsafe extern "C" fn(LLVMTypeRef, i32);
+pub type LLVMPY_GetLinkage = unsafe extern "C" fn(LLVMTypeRef) -> i32;
+pub type LLVMPY_SetVisibility = unsafe extern "C" fn(LLVMTypeRef, i32);
+pub type LLVMPY_GetVisibility = unsafe extern "C" fn(LLVMTypeRef) -> i32;
+pub type LLVMPY_SetDLLStorageClass = unsafe extern "C" fn(LLVMTypeRef, i32);
+pub type LLVMPY_GetDLLStorageClass = unsafe extern "C" fn(LLVMTypeRef) -> i32;
+pub type LLVMPY_GetEnumAttributeKindForName =
+    unsafe extern "C" fn(*const c_char, usize) -> usize;
+pub type LLVMPY_AddFunctionAttr = unsafe extern "C" fn(LLVMValueRef, usize);
+pub type LLVMPY_IsDeclaration = unsafe extern "C" fn(LLVMValueRef) -> i32;
+pub type LLVMPY_WriteCFG = unsafe extern "C" fn(LLVMValueRef, *mut *const c_char, i32);
+pub type LLVMPY_GetOpcodeName = unsafe extern "C" fn(LLVMValueRef) -> *const c_char;

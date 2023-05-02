@@ -1,9 +1,7 @@
+#[cfg(feature = "binding")]
+pub mod binding;
 mod interface;
 mod types;
-#[cfg(feature = "binding")]
-mod binding;
 
 pub use interface::*;
 pub use types::*;
-
-
